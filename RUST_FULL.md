@@ -21,7 +21,7 @@ fn main(parameters...){
 
 > If you want to auto format the program, use **rustfmt**.
 
-## Cargo
+## Cargo and it's Anatomy
 Cargo is Rust's build system and package manager.
 
 Cargo handles a lot of tasks for you: building code, downloading libraries, and building the libraries.<br>
@@ -31,20 +31,31 @@ Cargo handles a lot of tasks for you: building code, downloading libraries, and 
     ```bash
     cargo new cargo_name
     ```
-    This creates its files in a directory of the same name.
+The directory "cargo_name" will have two files:
+- cargo.toml file
+- src directory with main.rs file inside
 
-    The directory will have two files:
-    - cargo.toml file
-    - src directory with main.rs file inside
-    It has also generated new git repo along with .gitignore file. This won't be generated if cargo new is runned within existing Git Repository; This behaviour can be overridden by:
-    ```bash
-    cargo new --vcs=git cargo_name
-    ```
-    
-    Also, you can run (to get all options):
-    ```bash
-    cargo help
-    ```
+It has also generated new git repo along with .gitignore file.
+This won't be generated if cargo new is runned within existing Git Repository.
+This behaviour can be overridden.
 
+### Anatomy of .toml format for Rust
+```toml
+[package]
+name = "cargo_name"
+version = "0.1.0"
+edition = "2021"
 
+[dependencies]
+```
+The first line, *[package]*, is a section heading that indicates that the following statements are configuring a package.
+The Last line, *[dependencies]* is start of section for you to list any of your project's dependencies.
+The packages of code are called **crates** in rust.
 
+Cargo expects all code to be inside src/ directory. It has place designated for everything.
+
+- We can create a project using ***cargo new***
+- We can build a project using ***cargo build***
+- We can build and run a project in one step using ***cargo run***
+- We can build a project without producing a binary to check for errors using ***cargo check***
+- We can build project for release using ***cargo build --release*** which has optimizations: stored at *target/release*
