@@ -59,3 +59,103 @@ Cargo expects all code to be inside src/ directory. It has place designated for 
 - We can build and run a project in one step using ***cargo run***
 - We can build a project without producing a binary to check for errors using ***cargo check***
 - We can build project for release using ***cargo build --release*** which has optimizations: stored at *target/release*
+
+## Libraries
+
+To obtain user input and then print result as output, we need to bring the **io** input/output library into scope.
+
+The *io* library comes from the standard library, knowd as *std*:
+```bash
+use std::io;
+```
+The set of items defined in the standard library that it brings into the scope of every program is ***prelude***
+
+### Variables and Mutability:
+- By Default, all variables are immutable (Once given value, value can't be changed)
+- To make variables mutable use **mut**.
+
+```rs
+let mut guess = String::new();
+```
+Here, guess is bound to the result of calling *String::new*, a function that returns a new instance of a *String*.
+The **::** syntax in the **::new** line indicated that **new** is an associated function of the *String* type.
+
+In full, the line has created a mutable variable that is currently bound to a new, empty instance of a *String*.
+
+- Receiving user Input:
+```rs
+std::io::stdin()
+    .read_line(&mut guess)
+    .expect("Failed to read line");
+```
+In the first line, stdin function returns an instance of *std::io::Stdin*.
+
+The second line calls the *read_line* method on the standard input handle to get input from the user.
+We're also passing *&mut guess* as an argument to *read_line*. The **&** indicates that this argument is a reference
+> *&mut guess* should be passed instead of *&guess* to make it mutable
+
+The third line is handling potential Failure
+
+The *read_line* puts whatever user enters into the string we pass to it, but it also returns a **Result** value.
+**Result** is a enumeration, which is a type that can be in one of multiple possible states. Each state is a variant.
+
+*Result*'s varians are *Ok* and *Err*. An instance of *Result* has and **expect** method that your call. If this instance of *Result* is *err* value,
+*expect* will cause the program to crash and display the message that you passed as an argument to *expect*
+
+
+## Using Crates:
+Simply put the library and its version in the .toml file:
+```toml
+[dependencies]
+rand = "0.8.5"
+```
+If you need to update the libraries:
+```bash
+cargo update
+```
+this will update the dependencies to latest but less that version change. In this case: >0.8.5 but <0.9.0
+
+
+You can't remember what crates have so:
+```bash
+crate doc --open
+# List all the dependencies that the current program runs on with its documentation.
+```
+
+
+## Common Programming Concepts in Rust:
+  - Variables and Mutability
+
+    All variables are immutable by default which need to be set to be mutable with *mut* keyword.
+    This is for making code more convenient to write.
+
+    ```rs
+    const THREE_HOURS_IN_SECONDS: u32 = 60 * 60 * 3;
+    let x = 4;
+    let mut y = 5;
+    ```
+
+    Shadowing Variables:
+
+      This is basically redefining same variables with maybe different variable type
+
+  - Data Types
+
+    > In Rust, all variables must have a type annotation.
+
+    There are two data types: scalar and compound.
+
+    - Scalar Types:
+
+      A scalar type represents a single value. Rut has four primary scalar types: integers, floating points, booleans, and characters.
+
+      - Integer Types: Number without fractional compound.
+
+
+
+        Each variant can be either signed or unsigned and has explicit size.
+
+
+  - Functions
+  - Comments
+  - Control Flow
