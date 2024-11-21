@@ -151,9 +151,35 @@ crate doc --open
 
       - Integer Types: Number without fractional compound.
 
-
-
+        ![Integers in Rust](/imgNotes/integers.png)
         Each variant can be either signed or unsigned and has explicit size.
+
+        Signed variant: -(2^(n-1)) to 2^(n-1) - 1 inclusive.
+
+        Unsigned variants: 0 to 2^(n) -1
+
+        Note: isize and usize depend on the architecture of the computer, the program runs in.
+
+        You use isize and usize when indexing some sort of collection.
+
+        In Rust, integer literals are used to represent integer values directly in the code.
+        They can be specifie in several different number system.
+        > You can include *underscore* for better readability.
+        ```rs
+        let decimal: i32 = 42; //Decimal Integer
+        let octal: i32 = 0o_52; // Octal for 42
+        let hex: i32 = 0x_2A; // Hexadecimal for 42
+        let binary: i32 = 0b_101010; // Binary for 42
+
+        let addition = decimal + 10i32; // Adds 10 to decimal variable and store it
+        ```
+
+        ```md
+        # Integer overflow
+
+        ```
+
+
 
 
   - Functions
