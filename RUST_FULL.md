@@ -1,5 +1,4 @@
 # Rust
-
 Rust is a statically typed language.
 
 I am learning the language because I know Python as a dynamically typed language but I don't know a future proof statically typed language.
@@ -406,3 +405,191 @@ crate doc --open
       }
       ```
       > Note that the start of range in inclusive but not the end
+
+  ## Ownership:
+
+  It enables rust to make memory safety guarantees without needing a garbage collecctor.
+
+  Some languages have garbage collection that regularly looks for no-longer-used memory as program runs.
+  In other, programmer must explicitly allocate and free memory.
+
+  Rust uses third approach: memory is managed through a system of ownership with a set of rules that compiler checks.
+
+  ```md
+  ### The Stack and the Heap
+
+  Depending on whether value is on stack or heap affects how language behaves.
+
+  Both stack and heap are parts of memory available to your code at runtime, but they are structured different.
+  The stack stores values in order and removes the values in the opposite order. The heap is less organized: finds
+  an empty spot in the heap that is big enough, marks it as being in use, and returns a pointer, which is address
+  of that location.
+
+
+
+  Stack: *Last In, First Out*
+  - Adding data: pushing onto the stack,
+  - Removing data: popping off the stack
+  - All data stored on stack must have known, fixed size
+  - Data with unknown size at compile time or size that might change must be store on the heap.
+
+  Heap:
+  - Allocation (Pointer concept)
+  - Pointer to heap is fixed, you can store the pointer on the stack. When you want data, you follow the pointer.
+
+  Pushing to stack is faster than allocating on heap because the allocator never has to serach for a place to store new data;
+  location always on top of stack. Contemporary processors are faster if they jump around less in memory.
+
+  When code calls function, values passed into function(including, potentially, pointers to data on heap) and function's local variables
+  get pushed onto the stack. When function is over, those values get popped off the stack.
+
+  Keeping track of what parts of code are using what data on the heap, minimizing the amount of duplicate data on the heap,
+  and cleaning up unused data on the heap so you don’t run out of space are all problems that ownership addresses.
+
+  Main purpose of ownership is to manage heap data.
+  ```
+
+  Ownership Rules:
+  - Each value in Rust has an *owner*
+  - Only one owner at a time
+  - When owner goes out of scope, value will be dropped
+
+  Remember to bring variable to scope only from point of use.
+
+  - The String Type
+
+  All previous data types have known fixed size which is stored on the stack.
+
+  String is unique as the data is stored on the heap.
+  ```rs
+  let s = String::from("hello"); // :: operator
+  ```
+
+  Unlike String, string literals are hardcoded onto the program. Hence they are fast and efficient because they are immutable.
+
+  For **String** type, in order to support mutable, growable piece of text, we need to allocate an amount of memory on the heap,
+  which is unknown at compile time. This means:
+  - The memory must be requested by allocator at runtime
+  - We need a way of returning this memory to allocator when we're done with our **String**
+
+  Rust take a different path for this: memory is automatically returned once variable that owns it goes out of scope.
+
+  When vairable goes out of scope, rust calls a special function for us: **drop**
+
+
+  Loop at the code below:
+  ```rs
+  let x = 5;
+  let y = x;
+  println!("{y}"); // No error
+
+  let s1 = String::from("hello");
+  let s2 = s1;
+  println!("{s1}"); // Raises Error
+  ```
+
+  Firstly, x is set to 5. Then, the value of x is copied to y. Integers are simple and both the values are pushed onto the stack.
+
+  In case of string however, the behaviour is totally different.
+
+  String is made of three things:
+  - pointer: points to the memory heap where value is stored
+  - length
+  - capacity
+
+  When s1 is assigned to s2, the whole **string** data is copied i.e the pointer, length and the capacity. This mean that
+  s2 and s1 points to same memory in the heap. Hence, when **drop** function is called, s1 is freed and compiler tries to free
+  s2 too. This leads to *double free error*. Freeing memory twice may lead to memory corruption, which can lead to security
+  vulneribilities.
+
+  In rust, to ensure memory safety, after line **let s2 = s1**, rust considers s1 as no longer valid. So if you try to print
+  s1, you will get an error at compile time.
+
+  - Shallow copy: copying poiner, length, and capacity without copying data.
+  - Deep Copy: move every things to new variable.
+
+  Rust uses deep copy. By design, rust never auto creates "deep" copies of data so any automatic copying can be assumed to be
+  inexpensive in terms of runtime performance.
+
+  - VARIABLES AND DATA INTERACTING WITH CLONE
+  > BUT if you did need to copy the heap data of a String, not just the stack data, we can use common method called *clone*.
+  ```rs
+  let s1 = String::from("hello");
+  let s2 = s1.clone();
+
+  println!("s1 = {s1}, s2 = {s2}");
+  ```
+  Just know that when you see call to **clone**, some arbitrary code is being executed and that code may be **expensive**.
+
+  > Basic data types that are on stack need not be cloned, copies are made easily as this is cheap operation.
+
+  Rust has a special annotation called **Copy** trait that we can place on types that are stored on the stack, as integers are.
+  If type implements **Copy** trait, variables that use it do not move, but rather are trivially copied, making them valid after assignment
+  to another variable. Rust doesn't allow us to annotate tpe with **Copy** trait if type, or any parts, has implemented the **Drop** trait.
+
+  - OWNERSHIP AND FUNCTIONS:
+  ```rs
+  fn main() {
+      let s = String::from("hello");  // s comes into scope
+
+      takes_ownership(s);             // s's value moves into the function...
+                                      // ... and so is no longer valid here
+
+      let x = 5;                      // x comes into scope
+
+      makes_copy(x);                  // x would move into the function,
+                                      // but i32 is Copy, so it's okay to still
+                                      // use x afterward
+
+  } // Here, x goes out of scope, then s. But because s's value was moved, nothing
+    // special happens.
+
+  fn takes_ownership(some_string: String) { // some_string comes into scope
+      println!("{some_string}");
+  } // Here, some_string goes out of scope and `drop` is called. The backing
+    // memory is freed.
+
+  fn makes_copy(some_integer: i32) { // some_integer comes into scope
+      println!("{some_integer}");
+  } // Here, some_integer goes out of scope. Nothing special happens.
+  ```
+
+  - RETURN VALUES AND SCOPE:
+
+  Returning values can be used to transfer ownership.
+  ```rs
+  fn main() {
+      let s1 = gives_ownership();         // gives_ownership moves its return
+                                          // value into s1
+
+      let s2 = String::from("hello");     // s2 comes into scope
+
+      let s3 = takes_and_gives_back(s2);  // s2 is moved into
+                                          // takes_and_gives_back, which also
+                                          // moves its return value into s3
+  } // Here, s3 goes out of scope and is dropped. s2 was moved, so nothing
+    // happens. s1 goes out of scope and is dropped.
+
+  fn gives_ownership() -> String {             // gives_ownership will move its
+                                               // return value into the function
+                                               // that calls it
+
+      let some_string = String::from("yours"); // some_string comes into scope
+
+      some_string                              // some_string is returned and
+                                               // moves out to the calling
+                                               // function
+  }
+
+  // This function takes a String and returns one
+  fn takes_and_gives_back(a_string: String) -> String { // a_string comes into
+                                                        // scope
+
+      a_string  // a_string is returned and moves out to the calling function
+  }
+  ```
+
+  > This is too tenuos so rust has "reference" same as C
+
+
+  ## Regerences and Borrowing:
