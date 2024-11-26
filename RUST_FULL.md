@@ -405,3 +405,4 @@ crate doc --open
           println!("{number}");
       }
       ```
+      > Note that the start of range in inclusive but not the end
