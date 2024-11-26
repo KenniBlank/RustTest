@@ -174,14 +174,234 @@ crate doc --open
         let addition = decimal + 10i32; // Adds 10 to decimal variable and store it
         ```
 
-        ```md
-        # Integer overflow
 
+        Integer Overflow:
+        ```md
+        Let’s say you have a variable of type u8 that can hold values between 0 and 255.
+        If you try to change the variable to a value outside that range, such as 256, integer overflow will occur, which can result in one of two behaviors.
+        When you’re compiling in debug mode, Rust includes checks for integer overflow that cause your program to **panic** at runtime if this behavior occurs.
+        Rust uses the term panicking when a program exits with an error;
+
+        When you’re compiling in release mode with the --release flag, Rust does not include checks for integer overflow that cause panics.
+        Instead, if overflow occurs, Rust performs two’s complement wrapping.
+        In short, values greater than the maximum value the type can hold “wrap around” to the minimum of the values the type can hold.
+
+        To explicitly handle the possibility of overflow, you can use these families of methods provided by the standard library for primitive numeric types:
+        - Wrap in all modes with the wrapping_* methods, such as wrapping_add.
+        - Return the None value if there is overflow with the checked_* methods.
+        - Return the value and a boolean indicating whether there was overflow with the overflowing_* methods.
+        - Saturate at the value’s minimum or maximum values with the saturating_* methods.
         ```
 
+      - Floating-Point Types:
 
+      Rust has two primary types for float numbers: **f32** and **f64**. All floating points are signed.
 
+      **f64** has double precision. It is default on all modern cpu.
+      ```rs
+      fn main(){
+          let x = 2.0;  // f64
+          let y: f32 = 3.0; // f32
+      }
+      ```
+
+      - Boolean Type
+      ```rs
+      fn main(){
+          let t = true;
+          let f: bool = false; // explicit type annotation
+      }
+      ```
+
+      - Char Type
+
+      In Rust, char uses single quote for definition
+      ```rs
+      fn main() {
+          let c = 'z';
+          let z: char = 'ℤ'; // with explicit type annotation
+          let heart_eyed_cat = '😻';
+      }
+      ```
+
+      - Basic Numeric Operators
+      ```rs
+      fn main(){
+          let sum = 5 + 10;
+          let difference = 95.5 - 4.3;
+          let product = 4 * 30;
+          let quotient = 56.7 / 32.2
+          let truncated = -5 / 3; // Result is -1
+          let remainder = 43 % 5;
+      }
+      ```
+
+    - Compound Types:
+
+      Compound types can group multiple values into one type. Rust has two primitive compound types:
+      - Tuples
+
+      Tuple is general way of grouping together a number of values with diffent types.
+      > Tuple without value is called unit and is written as (). Represents empty value or empty return type.
+      ```rs
+        let tup: (i32, f64, char) = (500, 6.4, 'c');
+        let tup = (500, 6.4, 'c');
+
+        let (x, y, z) = tup;
+        let x = tup.0, y = tup.1, z = tup.2;
+      ```
+
+      - Arrays
+
+      This is another way to group data but unlike tuple, all values must be of same type.
+
+      They are useful when you want your data allocated on the stack rather that the heap.
+      ```rs
+        let a = [1, 2, 3];
+        let b = ["Jan", "Feb", "Mar"];
+        let c: [i32: 5] = [1, 2, 3, 4, 5];
+        let d = [3; 5]; // This means d = [3, 3, 3, 3, 3]
+      ```
+      > You are not allowed to access beyond score of array. Rust ensures memory safety.
 
   - Functions
-  - Comments
+
+    Rust doesn't care where function is defined.
+
+    When defining function in rust, type must be specified for parameters.
+    ```rs
+    fn main() {
+        print_labeled_measurement(5, 'h');
+    }
+
+    fn print_labeled_measurement(value: i32, unit_label: char) {
+        println!("The measurement is: {value}{unit_label}");
+    }
+    ```
+
+    - Expressions and Statements:
+
+      Unlike other languages, rust has distinction between them.
+      - Statements are instructions that perform some action and do not return a value.
+      - Expressions evaluate to a resultant value. Let’s look at some examples.
+
+      ```rs
+      let x = (let y = 6); //results in error
+      ```
+
+      Expressions do not include ending semicolons.
+      Expression is calling function, macro, etc.
+      > Creating new scope block is expression too
+      ```rs
+      let x = {
+          let y = 6;
+          y + 1
+      }
+      // No Errors because y + 1 has result
+      ```
+
+    - Functions with return type:
+
+    Return type must be specified too.
+    If you write a semicolon, error will be raised because that's an statement
+    ```rs
+    fn five() -> i32{
+        5
+    }
+    ```
+
   - Control Flow
+    All conditions must be bool.
+
+    - if expressions:
+    ```rs
+    if number < 0 {
+        println!("Less than 0");
+    } else if number == 5 {
+        println!("Equal to 0");
+    } else {
+        println!("Greater than 0");
+    }
+    ```
+      - Using if in a let statement:
+      > Note that all values that have potential to be result must be of same type.
+      ```rs
+      let number = if true {5} else {6}; // Correct
+      let number = if true {5} else {"false"}; // Raises error
+      ```
+
+    - Loops:
+      - loop
+      ```rs
+      loop {
+          println!("Hello");
+      }
+      ```
+
+      - returning values from loops:
+
+      Use break and value to return to
+      ```rs
+      let mut counter = 0;
+      let result = loop {
+          counter += 1;
+          if counter == 10 {
+              break counter * 2;
+          }
+      }
+      ```
+
+      - loop labels to disambiguate between multiple loops
+
+      If you have loops within loops, break and continue apply to the innermost loop at that point.
+      You can optionally specify a loop label  on a loop that you then can use with break or continue
+      to specify that those keywords apply to the labeled loop instead of the innermost loop.
+
+      ```rs
+      let mut count = 0;
+      'counting_up: loop {
+          println!("count = {count}");
+          let mut remaining = 10;
+
+          loop {
+              println!("remaining = {remaining}");
+              if remaining == 9 {
+                  break;
+              }
+              if count == 2 {
+                  break 'counting_up;
+              }
+              remaining -= 1;
+          }
+
+          count += 1;
+      }
+      println!("End count = {count}");
+      ```
+
+      - while loop
+      ```rs
+      let mut number = 10;
+      while number != 0{
+          println!("{number}!");
+          number -= 1;
+      }
+      ```
+
+      - For Loop:
+
+      In rust, for loop's safety and consiseness makes it the best loop (My opinion).
+      ```rs
+      let elements = [10, 100, 1000];
+
+      for element in elements{
+          println!("{element}");
+      }
+      ```
+
+      In cases where you want to run certain times:
+      ```rs
+      for number in (1..4).rev(){
+          println!("{number}");
+      }
+      ```
