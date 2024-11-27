@@ -592,4 +592,176 @@ crate doc --open
   > This is too tenuos so rust has "reference" same as C
 
 
-  ## Regerences and Borrowing:
+  ## References and Borrowing:
+  ```rs
+  fn main() {
+      let s1 = String::from("hello");
+
+      let len = calculate_length(&s1);
+
+      println!("The length of '{s1}' is {len}.");
+  }
+
+  fn calculate_length(s: &String) -> usize { // s is a reference to a String
+      s.len()
+  } // Here, s goes out of scope. But because it does not have ownership of what
+    // it refers to, it is not dropped.
+  ```
+
+  A reference, unlike pointer, is guaranteed to point to a valid value of particular type for the life of that reference.
+
+  In this case, the **Ampersant &** represents references, and they allow you to refer to some value without taking ownership of it.
+  This means that like variables are immutable by default, so are references.
+
+  - Mutable References:
+  ```rs
+  fn main() {
+      let mut s = String::from("hello");
+
+      change(&mut s);
+  }
+
+  fn change(some_string: &mut String) {
+      some_string.push_str(", world");
+  }
+  ```
+
+  **Mutable references** have one big restriction: creating multiple reference will fail.
+  ```rs
+  let mut s = String::from("hello");
+
+  let r1 = &mut s;
+  let r2 = &mut s;
+
+  println!("{}, {}", r1, r2);
+  ```
+
+  Why this restriction in RUST?
+
+  -> Rust prevents data races at compile time. A data race is similar to race condition and happens when three behaviors occur:
+  - Two or more pointers access the same data at the same time.
+  - At least one of the pointers is being used to write to data.
+  - There's no mechanism being used to synchronize access to the data.
+
+  You can always create new scope
+  ```rs
+  let mut s = String::from("hello");
+
+  {
+      let r1 = &mut s;
+  } // r1 goes out of scope here, so we can make a new reference with no problems.
+
+  let r2 = &mut s;
+  ```
+
+  Rust enforces a similar rule for combining mutable and immutable references.
+  ```rs
+  let mut s = String::from("hello");
+
+  let r1 = &s; // no problem
+  let r2 = &s; // no problem
+  let r3 = &mut s; // BIG PROBLEM
+
+  println!("{}, {}, and {}", r1, r2, r3);
+  ```
+
+  Also we cannot have mutable reference while we have an immutable one to same value.
+  ```rs
+  let mut s = String::from("hello");
+
+  let r1 = &s; // no problem
+  let r2 = &s; // no problem
+  println!("{r1} and {r2}");
+  // variables r1 and r2 will not be used after this point
+
+  let r3 = &mut s; // no problem
+  println!("{r3}");
+  ```
+  > SCOPE SHOULDN'T OVERLAP
+
+
+  ### Dangling References
+
+  Dangling pointer: a pointer that references location in memory that may have been given to someone else.
+
+  It is easy to erroneously create dangling pointer by freeing some memory while preserving a pointer
+  to that memory.
+
+  In Rust, the compiler guarantees that references will never be dangling references.
+
+  ```rs
+  fn main() {
+      let reference_to_nothing = dangle();
+  }
+
+  fn dangle() -> &String { // dangle returns a reference to a String
+
+      let s = String::from("hello"); // s is a new String
+
+      &s // we return a reference to the String, s
+  } // Here, s goes out of scope, and is dropped. Its memory goes away.
+    // Danger!
+  ```
+
+  ## The Slice Type:
+
+  Slices let you reference a contiguous sequence of elements in collection rather than whole collection. It is kind of a reference i.e No ownership.
+
+  A string slice is referenc to part of String, and it looks like this:
+  ```rs
+  let s = String::from("Hello World");
+
+  let hello = &s[0..5]; //Note that you can drop 0 as it is default i.e [..5] will work
+  let world = &s[6..11]; // Similary if last element is included, you can use [6..]
+  ```
+  ![Slicing String](/imgNotes/slice.png)
+
+  ```rs
+  fn first_word(s: &String) -> &str {
+      let bytes = s.as_bytes();
+
+      for (i, &item) in bytes.iter().enumerate() {
+          if item == b' ' {
+              return &s[0..i];
+          }
+      }
+
+      &s[..]
+  }
+
+  fn main() {
+      let mut s = String::from("hello world");
+
+      let word = first_word(&s);
+
+      s.clear(); // error!
+
+      println!("the first word is: {word}");
+  }
+  ```
+
+  Slices are great for letting us know if we fucked up.
+
+  Why error?
+  Rust disallows mutable reference in clear and immutable reference in word from existing at same time, and compilation fails.
+
+
+  ### String Literals as Slices
+  ```rs
+  let s = "Hello World"; // The type of s is &str here
+  ```
+  It is a slice pointing to that specific binary hence string liberals are immutable.
+
+  Taking string slices as parameter makes it flexible for both sting and str type.
+  ```rs
+  fn first_word(s: &str) -> &str{}
+  ```
+  By doing this, we can send a string literal or slice of string for similar function. More flexible way in future...
+
+  ***OTHER SLICES:***
+  String slices are specific to string but there are more general slice type too.
+  ```rs
+  let a = [0, 10, 20, 30];
+
+  let slice = &a[1..3]; // This slice has type [&i32]
+  ```
